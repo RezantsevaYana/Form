@@ -7,6 +7,7 @@
         :value="searchValue"
         @input="inputHandler"
         @click="clickHandler"
+        @blur="blurHandler"
         :readonly="readonly"
     >
     <span class="input-error" v-if="error">{{ errorMessage }}</span>
@@ -40,9 +41,10 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: Option): void
+  (e: 'blur'): void
 }>();
 
-const searchValue = ref('');
+const searchValue = ref(props.modelValue);
 
 const filterOptions = computed(() => {
   return props.options.filter((option) => {
@@ -63,6 +65,10 @@ const selectHandler = (option: Option) => {
   isOpenDropdown.value = false
   searchValue.value = getOptionLabel(option)
   emit('update:modelValue', option);
+};
+
+const blurHandler = () => {
+  emit('blur');
 };
 
 const getOptionLabel = (option: Option) => {

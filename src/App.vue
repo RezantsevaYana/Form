@@ -39,7 +39,6 @@ const addAccountHandler = () => {
   })
 }
 
-
 </script>
 
 <style scoped>

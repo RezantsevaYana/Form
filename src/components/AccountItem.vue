@@ -18,6 +18,7 @@
         placeholder="Выберите тип"
         :modelValue="account.type"
         @update:modelValue="setAccountType"
+        @blur="v$.type.$touch"
         option-label-key="text"
         :error="v$.type.$error"
         :error-message="v$.type.$errors[0]?.$message"
@@ -55,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref, computed} from "vue";
+import {onMounted, ref, computed, watch} from "vue";
 import {Account, AccountType} from "../types/account";
 import Input from "./Input.vue";
 import Select from "./Select.vue";
@@ -87,6 +88,9 @@ const labelText = computed({
   }
 });
 
+watch(account, (value) => {
+  accountStore.updateAccount(value);
+}, { deep: true });
 
 const updateInputHandler = (key: string, value: string) => {
   v$.value[key].$touch();

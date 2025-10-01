@@ -7,6 +7,7 @@ export const useAccountStore = defineStore('account', {
       accounts: [] as Account[]
     }
   },
+  persist: true,
   getters: {
     getAccounts: (state) => state.accounts
   },
@@ -16,6 +17,13 @@ export const useAccountStore = defineStore('account', {
     },
     removeAccount(id: string) {
       this.accounts = this.accounts.filter((account) => account.id !== id);
+    },
+    updateAccount(account: Account) {
+      console.log(account, 'updateAccount')
+      const index = this.accounts.findIndex((item) => item.id === account.id);
+      if (index !== -1) {
+        this.accounts[index] = account;
+      }
     }
   },
 });
