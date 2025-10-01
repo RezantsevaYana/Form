@@ -1,5 +1,5 @@
 <template>
-  <div class="select-container">
+  <div class="select-container" :class="{'select-container_error': error}" ref="selectRef">
     <label :for="id" class="label">{{ label }}</label>
     <input
         :id="id"
@@ -9,6 +9,7 @@
         @click="clickHandler"
         :readonly="readonly"
     >
+    <span class="input-error" v-if="error">{{ errorMessage }}</span>
     <div class="select-container__dropdown" :class="{'select-container__dropdown_open': isOpenDropdown}">
       <ul>
         <li v-for="option in filterOptions" @click="selectHandler(option)" :key="getOptionLabel(option)">
@@ -20,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, onUnmounted, ref} from "vue";
 
 type Option = Record<string, any>
 
@@ -30,7 +31,9 @@ const props = withDefaults(defineProps<{
   modelValue: string
   options: Option[],
   optionLabelKey?: string,
-  readonly?: boolean
+  readonly?: boolean,
+  error?: boolean
+  errorMessage?: string
 }>(), {
   optionLabelKey: 'text'
 });
@@ -65,6 +68,23 @@ const selectHandler = (option: Option) => {
 const getOptionLabel = (option: Option) => {
   return option[props.optionLabelKey]
 };
+
+const selectRef = ref<HTMLElement | null>(null);
+onMounted(() => {
+  document.addEventListener('click', (event) => {
+    if (!selectRef.value?.contains(event.target as Node)) {
+      isOpenDropdown.value = false
+    }
+  })
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', (event) => {
+    if (!selectRef.value?.contains(event.target as Node)) {
+      isOpenDropdown.value = false
+    }
+  })
+});
 
 
 </script>
@@ -122,10 +142,21 @@ const getOptionLabel = (option: Option) => {
     border-radius: 5px;
   }
 }
-
 .select-container__dropdown_open {
   opacity: 1;
   visibility: visible;
+}
+.select-container_error {
+  input {
+    border: 1px solid red;
+  }
+}
+.input-error {
+  color: red;
+  font-size: 0.8rem;
+  position: absolute;
+  bottom: -20px;
+  left: 0;
 }
 
 </style>

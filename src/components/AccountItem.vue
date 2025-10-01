@@ -1,35 +1,49 @@
 <template>
   <div class="account-item">
     <Input
-        id="account-label"
+        inputType="text"
+        :id="`account-label-${account.id}`"
         label="Метка"
         placeholder="Введите метку"
-        @update:model-value="updateLabel"
+        :modelValue="labelText"
+        @update:model-value="labelText = $event"
+        :error="v$.label.$error"
+        :error-message="v$.label.$errors[0]?.$message"
     />
 
     <Select
-        id="type"
+        :id="`account-type-${account.id}`"
         :options="options"
         label="Тип записи"
         placeholder="Выберите тип"
-        v-model="account.type"
+        :modelValue="account.type"
+        @update:modelValue="setAccountType"
         option-label-key="text"
+        :error="v$.type.$error"
+        :error-message="v$.type.$errors[0]?.$message"
     />
 
     <Input
         inputType="text"
-        id="account-login"
+        :id="`account-login-${account.id}`"
         label="Логин"
         placeholder="Введите логин"
-        v-model="account.login"
+        :modelValue="account.login"
+        @update:modelValue="updateInputHandler('login', $event)"
+        :error="v$.login.$error"
+        :error-message="v$.login.$errors[0]?.$message"
     />
 
     <Input
-        id="pasword"
+        v-show="account.type === 'Local'"
+        :id="`account-password-${account.id}`"
         inputType="password"
         label="Пароль"
         placeholder="Введите пароль"
-        v-model="account.password"
+        :modelValue="account.password"
+        @update:modelValue="updateInputHandler('password', $event)"
+        :error="v$.password.$error"
+        :error-message="v$.password.$errors[0]?.$message"
     />
 
     <Button
@@ -41,14 +55,14 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref} from "vue";
+import {onMounted, ref, computed} from "vue";
 import {Account, AccountType} from "../types/account";
 import Input from "./Input.vue";
 import Select from "./Select.vue";
 import Button from "./Button.vue";
 import { useAccountStore} from "../store/accountStore";
 import {useVuelidate} from "@vuelidate/core";
-import {required} from "@vuelidate/validators";
+import { required, helpers, maxLength } from '@vuelidate/validators';
 
 const accountStore = useAccountStore();
 
@@ -60,8 +74,30 @@ const account = ref({
   ...props.account
 });
 
-const updateLabel = (value: string) => {
+const labelText = computed({
+  get() {
+    return account.value.label.map(item => item.text).join(';');
+  },
+  set(value: string) {
+    account.value.label = value
+        .split(';')
+        .map(item => item.trim())
+        .filter(item => item.length > 0)
+        .map(item => ({ text: item }));
+  }
+});
 
+
+const updateInputHandler = (key: string, value: string) => {
+  v$.value[key].$touch();
+  account.value[key] = value;
+};
+
+const setAccountType = (value: { value: AccountType ; text: string}) => {
+  account.value.type = value.value;
+  if (value.value === 'Local') {
+    account.value.password = null;
+  }
 };
 
 const options = [
@@ -81,13 +117,19 @@ const deleteAccount = () => {
 
 const v$ = useVuelidate({
   type: {
-    required
+    required: helpers.withMessage('Поле обязательно для заполнения', required),
+  },
+  label: {
+    required: helpers.withMessage('Поле обязательно для заполнения', required),
+    maxLength: helpers.withMessage('Максимальная длина 50 символов', maxLength(50)),
   },
   login: {
-    required
+    required: helpers.withMessage('Поле обязательно для заполнения', required),
   },
   password: {
-    required
+    requiredIf: (account.value.type === 'Local'),
+    required: helpers.withMessage('Поле обязательно для заполнения', required),
+    maxLength: helpers.withMessage('Максимальная длина 100 символов', maxLength(100)),
   }
 }, account);
 

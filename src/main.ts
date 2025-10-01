@@ -1,4 +1,5 @@
 import './assets/main.css';
+import 'virtual:svg-icons-register';
 import { createPinia } from 'pinia';
 const pinia = createPinia();
 
