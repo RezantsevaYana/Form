@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref, computed, watch} from "vue";
+import {ref, computed, watch} from "vue";
 import {Account, AccountType} from "../types/account";
 import Input from "./Input.vue";
 import Select from "./Select.vue";
@@ -89,7 +89,9 @@ const labelText = computed({
 });
 
 watch(account, (value) => {
-  accountStore.updateAccount(value);
+  if (!v$.value.$invalid) {
+    accountStore.updateAccount(value);
+  }
 }, { deep: true });
 
 const updateInputHandler = (key: string, value: string) => {
